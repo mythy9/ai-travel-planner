@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Travel Planner - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff;
+    }
+    #layout {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 80px;
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+      border-right: 2px solid #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 12px 0;
+      position: fixed;
+      height: 100vh;
+      z-index: 20;
+      transition: width 0.3s ease-in-out;
+      will-change: width;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    .sidebar.expanded {
+      width: 190px;
+    }
+    .sidebar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 0 6px;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 6px 8px 6px;
+    }
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+      font-size: 18px;
+      user-select: none;
+      flex: 0 0 auto;
+      margin-left: 6px;
+      transition: transform 0.2s;
+      will-change: transform;
+    }
+    .logo:hover {
+      transform: scale3d(1.05, 1.05, 1);
+    }
+    .brand-text {
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .brand-text {
+      opacity: 1;
+    }
+
+    /* Toggle arrow */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 6px 8px 6px;
+    }
+    .toggle-btn {
+      width: 48px;
+      height: 48px;
+      border: none;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+      will-change: background, transform, box-shadow;
+    }
+    .toggle-btn:hover {
+      background: #555;
+      transform: scale3d(1.05, 1.05, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .toggle-label {
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .toggle-label {
+      opacity: 1;
+    }
+    .sidebar.expanded .toggle-btn {
+      transform: rotate(180deg);
+    }
+
+    /* Nav buttons */
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 6px 0 6px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 44px;
+      border: none;
+      background: #000;
+      color: #fff;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.3s, color 0.3s, transform 0.2s, box-shadow 0.3s;
+      border-radius: 8px;
+      padding: 0 8px;
+      border: 1px solid #fff;
+      will-change: background, color, transform, box-shadow;
+    }
+    .nav-btn:hover {
+      background: #333;
+      color: #fff;
+      transform: translate3d(5px, 0, 0);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    #btn-home:hover { background: #2196F3; }
+    #btn-chat:hover { background: #4CAF50; }
+    #btn-search:hover { background: #FF9800; }
+    #btn-saved:hover { background: #9C27B0; }
+    #btn-trips:hover { background: #F44336; }
+    .nav-btn.active {
+      background: #333;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-text {
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .nav-text {
+      opacity: 1;
+    }
+
+    /* Profile bottom */
+    .profile-area {
+      margin-top: auto;
+      padding: 8px 6px 12px 6px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .more-options-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-button {
+      width: 48px;
+      height: 48px;
+      border: none;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      outline: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+      will-change: background, transform, box-shadow;
+    }
+    .profile-button:hover {
+      background: #555;
+      transform: scale3d(1.1, 1.1, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .more-options-text {
+      color: #ffffff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .more-options-text {
+      color: #fff;
+      opacity: 1;
+    }
+    .profile-text {
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .profile-text {
+      opacity: 1;
+    }
+
+    /* Map expanded mode */
+    .main-content.map-expanded .center-content {
+      display: none;
+    }
+    .main-content.map-expanded .map-panel {
+      flex: 1;
+      width: 100%;
+    }
+
+    .profile-actions {
+      position: absolute;
+      top: -110px;
+      left: 0;
+      width: 100%;
+      background: #000;
+      border: 1px solid #fff;
+      padding: 8px 0;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 25;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .profile-actions.show {
+      display: flex;
+    }
+    .more-options-actions {
+      position: absolute;
+      top: -160px;
+      left: 0;
+      width: 100%;
+      background: #000;
+      border: 1px solid #fff;
+      padding: 8px 0;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 25;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .more-options-actions.show {
+      display: flex;
+    }
+    .profile-action-btn {
+      background: #333;
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      text-align: left;
+      margin: 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      will-change: background, transform;
+    }
+    .profile-action-btn:hover {
+      background: #555;
+      transform: scale3d(1.02, 1.02, 1);
+    }
+    .action-text {
+      display: none;
+      transition: opacity 0.3s ease-in-out;
+      white-space: nowrap;
+    }
+    .sidebar.expanded .action-text {
+      display: inline;
+      opacity: 1;
+    }
+    /* .more-options-actions .action-text {
+      display: none !important;
+    } */
+
+    /* Login modal */
+    #login-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+    }
+    #login-modal.show { display: flex; }
+    #login-modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 32px;
+      max-width: 360px;
+      width: 90%;
+      box-sizing: border-box;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      border: 2px solid #000;
+    }
+    #login-modal-content h2 {
+      margin: 0 0 16px 0;
+      color: #000;
+      font-weight: 700;
+      font-size: 1.6em;
+      text-align: center;
+    }
+    #login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #login-form label {
+      color: #000;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    #login-form input {
+      padding: 10px 12px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    #login-form input:focus { border-color: #000; }
+    #login-submit {
+      background: #333;
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s, transform 0.2s;
+      will-change: background, transform;
+    }
+    #login-submit:hover {
+      background: #555;
+      transform: scale3d(1.02, 1.02, 1);
+    }
+    #login-close {
+      margin-top: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #000;
+      font-size: 0.9em;
+      text-align: center;
+      transition: color 0.3s;
+    }
+    #login-close:hover {
+      color: #333;
+    }
+    #login-message {
+      margin-top: 12px;
+      color: #000;
+      font-weight: 600;
+    }
+
+    /* Main area */
+    .main-content {
+      display: flex;
+      flex-direction: row;
+      margin-left: 80px;
+      width: calc(100vw - 80px);
+      height: 100vh;
+      transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+      will-change: margin-left, width;
+      overflow-x: hidden;
+    }
+    .sidebar.expanded ~ .main-content {
+      margin-left: 190px;
+      width: calc(100vw - 190px);
+    }
+    .center-content {
+      flex: 1;
+      min-width: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      overflow-y: auto;
+      height: 100vh;
+      padding: 20px 24px;
+      box-sizing: border-box;
+      transition: all 0.3s ease-in-out;
+      will-change: all;
+      position: relative;
+    }
+
+    .map-panel {
+      flex: 1;
+      min-width: 0;
+      height: 100vh;
+      background: #fff;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+      z-index: 5;
+      position: relative;
+      border-left: 1px solid #000;
+    }
+    #map { width: 100%; height: 100%; border: none; }
+    .location-display {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid #000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      color: #000;
+      transition: box-shadow 0.3s;
+    }
+    .location-display:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .location-text {
+      font-weight: 600;
+    }
+
+    .greeting {
+      font-size: 2em;
+      margin-bottom: 12px;
+      background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+    .suggested { margin-top: 32px; }
+    .suggested-title {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 8px;
+      color: #000;
+    }
+    .place-list { list-style: none; padding: 0; }
+    .place-list li {
+      margin: 10px 0;
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%);
+      border: 2px solid #4CAF50;
+      padding: 14px 16px;
+      border-radius: 10px;
+      transition: transform 0.2s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .place-list li:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 1366px) {
+      .center-content {
+        padding: 16px 20px;
+      }
+      .main-content {
+        flex-direction: column;
+      }
+      .center-content, .map-panel {
+        width: 100% !important;
+        height: 50vh !important;
+        flex: unset;
+      }
+      .map-panel { box-shadow: none; border-left: none; }
+      .sidebar { width: 0; }
+      .sidebar.expanded { width: 250px; }
+      .main-content { margin-left: 0; width: 100vw; }
+      .sidebar.expanded ~ .main-content { margin-left: 250px; width: calc(100vw - 250px); }
+    }
+    @media (max-width: 900px) {
+      .center-content { padding: 12px 16px; }
+    }
+    @media (max-width: 600px) {
+      .center-content, .map-panel { height: 48vh !important; padding: 8px 12px; }
+    }
+
+    /* Dark mode styles */
+    body.dark {
+      background: #121212;
+      color: #ffffff;
+    }
+    body.dark .sidebar {
+      background: #1e1e1e;
+      border-right: 2px solid #ffffff;
+    }
+    body.dark .center-content {
+      background: #121212;
+    }
+    body.dark .greeting,
+    body.dark .suggested-title,
+    body.dark .location-text {
+      color: #ffffff;
+    }
+    body.dark .place-list li {
+      background: #1e1e1e;
+      border: 1px solid #ffffff;
+      color: #ffffff;
+    }
+    body.dark .map-panel {
+      background: #121212;
+    }
+
+    /* Search Results Styles */
+    .search-results-container {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+    .place-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .place-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    .place-title {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .detail-section {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+    }
+    .detail-section h4 {
+      margin: 0 0 8px 0;
+      color: #34495e;
+      font-size: 1.1em;
+    }
+    .detail-section p, .detail-section ul {
+      margin: 5px 0;
+      color: #555;
+    }
+    .rating-stars {
+      color: #f39c12;
+      font-size: 1.2em;
+    }
+    .photo-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .photo-gallery img {
+      width: 150px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+      transition: transform 0.3s;
+      will-change: transform;
+    }
+    .photo-gallery img:hover {
+      transform: scale3d(1.05, 1.05, 1);
+    }
+    .review-card {
+      background: #ecf0f1;
+      border: 1px solid #bdc3c7;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      transition: background 0.3s;
+    }
+    .review-card:hover {
+      background: #d5dbdb;
+    }
+    .restaurant-card {
+      background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+      border: 1px solid #fdcb6e;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      transition: transform 0.3s;
+    }
+    .restaurant-card:hover {
+      transform: translateY(-2px);
+    }
+    .interactive-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      transition: background 0.3s, transform 0.3s;
+      will-change: background, transform;
+    }
+    .interactive-btn:hover {
+      background: #2980b9;
+      transform: scale3d(1.05, 1.05, 1);
+    }
+    .collapsible {
+      cursor: pointer;
+      background: #f1c40f;
+      color: #2c3e50;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      text-align: left;
+      outline: none;
+      font-size: 1em;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    .collapsible:hover {
+      background: #f39c12;
+    }
+    .content {
+      display: none;
+      padding: 10px;
+      background: #ecf0f1;
+      border-radius: 6px;
+      margin-top: 5px;
+    }
+    .content.show {
+      display: block;
+    }
+
+    /* Align icons and buttons in collapsed sidebar */
+    .sidebar:not(.expanded) .nav-btn {
+      justify-content: center;
+    }
+    .sidebar:not(.expanded) .nav-text {
+      display: none;
+    }
+    .sidebar:not(.expanded) .logo-row {
+      justify-content: flex-start;
+    }
+    .sidebar:not(.expanded) .logo {
+      margin-left: 0;
+    }
+    .sidebar:not(.expanded) .more-options-row {
+      justify-content: center;
+    }
+
+    /* Nearby places sections */
+    .nearby-section {
+      margin-top: 32px;
+    }
+    .nearby-section h3 {
+      font-size: 1.5em;
+      margin-bottom: 16px;
+      color: #000;
+      background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+    .places-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .place-card {
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%);
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .place-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .place-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .place-card h4 {
+      margin: 8px 0;
+      font-size: 1.2em;
+      color: #2c3e50;
+    }
+    .place-card p {
+      margin: 4px 0;
+      color: #555;
+      font-size: 0.9em;
+    }
+
+    /* Dark mode for nearby */
+    body.dark .nearby-section h3 {
+      color: #ffffff;
+    }
+    body.dark .place-card {
+      background: #1e1e1e;
+      border: 1px solid #ffffff;
+      color: #ffffff;
+    }
+    body.dark .place-card h4 {
+      color: #ffffff;
+    }
+    body.dark .place-card p {
+      color: #cccccc;
+    }
+
+    /* Dark mode for search results */
+    body.dark .place-title {
+      color: #ffffff;
+    }
+    body.dark .detail-section h4 {
+      color: #ffffff;
+    }
+    body.dark .detail-section p, body.dark .detail-section ul {
+      color: #cccccc;
+    }
+    body.dark .review-card p {
+      color: #cccccc;
+    }
+    body.dark .restaurant-card h5, body.dark .restaurant-card p {
+      color: #cccccc;
+    }
+    body.dark .collapsible {
+      background: #f39c12;
+      color: #2c3e50;
+    }
+    body.dark .content {
+      background: #1e1e1e;
+    }
+    body.dark .content h4 {
+      color: #ffffff;
+    }
+    body.dark .search-results-container h4 {
+      color: #ffffff;
+    }
+    body.dark h2 {
+      color: #ffffff;
+    }
+    body.dark input {
+      background: #333;
+      color: #fff;
+      border-color: #555;
+    }
+    body.dark button {
+      background: #333;
+      color: #fff;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="layout">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-section">
+        <div class="logo-row" aria-label="Brand">
+          <div class="logo" aria-hidden="true">AI</div>
+          <div class="brand-text">Travel Planner</div>
+        </div>
+        <div class="toggle-row">
+          <button id="expand-toggle" class="toggle-btn" aria-label="Expand sidebar" aria-expanded="false" aria-controls="sidebar">
+            <!-- Right arrow (expand) -->
+            <svg id="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5v10z"/></svg>
+          </button>
+          <div class="toggle-label">Collapse</div>
+        </div>
+        <div class="nav-list" role="menu" aria-orientation="vertical">
+          <button id="btn-home" class="nav-btn active" role="menuitem" aria-current="page">
+            <span class="nav-icon">
+              <!-- Home -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </span>
+            <span class="nav-text">Home</span>
+          </button>
+          <button id="btn-chat" class="nav-btn" role="menuitem">
+            <span class="nav-icon">
+              <!-- Chat bubble -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 00-2 2v14l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z"/></svg>
+            </span>
+            <span class="nav-text">Chat</span>
+          </button>
+          <button id="btn-search" class="nav-btn" role="menuitem">
+            <span class="nav-icon">
+              <!-- Search -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 20l-5.8-5.79A7.92 7.92 0 103 12a7.92 7.92 0 0011.21 7.2L20 21zM11 18a6 6 0 116-6 6 6 0 01-6 6z"/></svg>
+            </span>
+            <span class="nav-text">Search</span>
+          </button>
+          <button id="btn-saved" class="nav-btn" role="menuitem">
+            <span class="nav-icon">
+              <!-- Star -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21 15.64 13.97 22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l6.36 4.73L5.82 21z"/></svg>
+            </span>
+            <span class="nav-text">Saved</span>
+          </button>
+          <button id="btn-trips" class="nav-btn" role="menuitem">
+            <span class="nav-icon">
+              <!-- Suitcase -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12a2 2 0 002 2h8a2 2 0 002-2V6zM9 4h6v2H9z"/></svg>
+            </span>
+            <span class="nav-text">Trips</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="profile-area">
+        <div class="profile-row">
+          <button id="more-options-btn" class="profile-button" title="More Options">
+            <!-- Three dots icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          </button>
+          <div class="action-text">More Options</div>
+        </div>
+        <div class="profile-row" style="display:none;">
+          <button id="profile-btn" class="profile-button" title="User Profile">
+            <!-- User icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>
+          </button>
+          <div class="profile-text">Profile</div>
+        </div>
+
+        <div id="more-options-actions" class="more-options-actions">
+          <button id="settings-btn" class="profile-action-btn" title="Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+            <span class="action-text">Settings</span>
+          </button>
+          <button id="dark-mode-toggle" class="profile-action-btn" title="Dark Mode">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <span class="action-text">Dark Mode</span>
+          </button>
+         </div>
+       </div>
+      
+    </nav>
+
+    <!-- Main -->
+    <div class="main-content">
+      <div class="center-content">
+        <div class="location-display">
+          <span>📍</span>
+          <span class="location-text" id="current-location">Detecting location...</span>
+        </div>
+        <div id="content-panel" tabindex="0">
+          <div>Loading home page...</div>
+        </div>
+      </div>
+      <div class="map-panel">
+        <div id="map" role="region" aria-label="Map showing suggested travel locations"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title" tabindex="-1">
+    <div id="login-modal-content">
+      <h2 id="login-title">User Login</h2>
+      <form id="login-form" autocomplete="off">
+        <label for="email-input">Email</label>
+        <input type="email" id="email-input" name="email" required autocomplete="email" />
+        <label for="pass-input">Password</label>
+        <input type="password" id="pass-input" name="password" required autocomplete="current-password" />
+        <button type="submit" id="login-submit">Login</button>
+      </form>
+      <button id="login-close" aria-label="Close login dialog">Cancel</button>
+      <div id="login-message"></div>
+    </div>
+  </div>
+
+  <!-- Google Maps (uses provided key with Places) -->
+  <script>
+    let map;
+    let currentMarker;
+    let geocoder;
+    let currentPos = null;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 48.8584, lng: 2.2945 },
+        zoom: 2,
+        mapTypeControl: true,
+        streetViewControl: true,
+      });
+
+      geocoder = new google.maps.Geocoder();
+
+      // Get current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            updateMapLocation(pos);
+            currentPos = pos;
+            // Reverse geocode to get city
+            geocoder.geocode({ location: pos }, (results, status) => {
+              if (status === 'OK' && results[0]) {
+                const addressComponents = results[0].address_components;
+                const city = addressComponents.find(component =>
+                  component.types.includes('locality') ||
+                  component.types.includes('administrative_area_level_1')
+                );
+                document.getElementById('current-location').textContent = city ? city.long_name : 'Unknown Location';
+              } else {
+                document.getElementById('current-location').textContent = 'Location Detected';
+              }
+            });
+          },
+          (error) => {
+            console.warn('Geolocation error:', error);
+            document.getElementById('current-location').textContent = 'Location Unavailable';
+            // Fallback to default center
+          }
+        );
+      } else {
+        console.warn('Geolocation not supported');
+        document.getElementById('current-location').textContent = 'Geolocation Not Supported';
+      }
+
+
+    }
+
+    function updateMapLocation(pos) {
+      if (currentMarker) {
+        currentMarker.setMap(null);
+      }
+      map.setCenter(pos);
+      map.setZoom(15);
+      currentMarker = new google.maps.Marker({
+        position: pos,
+        map: map,
+        title: 'Current Location',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#4285F4',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+        },
+      });
+    }
+  </script>
+  
+  <!-- App logic -->
+  <script>
+    // Sidebar expand/collapse
+    const sidebar = document.getElementById('sidebar');
+    const expandToggle = document.getElementById('expand-toggle');
+    const arrowIcon = document.getElementById('arrow-icon');
+    const moreOptionsActions = document.getElementById('more-options-actions');
+
+    function setExpanded(expanded) {
+      if (expanded) {
+        sidebar.classList.add('expanded');
+        expandToggle.setAttribute('aria-expanded', 'true');
+        expandToggle.setAttribute('aria-label', 'Collapse sidebar');
+        // Right arrow rotated to left (collapse)
+        const path = arrowIcon.querySelector('path');
+        if (path) {
+          path.setAttribute('d', 'M10 17l5-5-5-5v10z');
+        }
+      } else {
+        sidebar.classList.remove('expanded');
+        expandToggle.setAttribute('aria-expanded', 'false');
+        expandToggle.setAttribute('aria-label', 'Expand sidebar');
+        // Right arrow (expand)
+        const path = arrowIcon.querySelector('path');
+        if (path) {
+          path.setAttribute('d', 'M10 17l5-5-5-5v10z');
+        }
+        moreOptionsActions.classList.remove('show');
+      }
+    }
+
+    // Remember state across reloads
+    const savedExpanded = localStorage.getItem('sidebarExpanded') === 'true';
+    setExpanded(savedExpanded);
+
+    expandToggle.addEventListener('click', () => {
+      const isExpanded = sidebar.classList.contains('expanded');
+      setExpanded(!isExpanded);
+      localStorage.setItem('sidebarExpanded', String(!isExpanded));
+    });
+
+    // Nav behavior
+    const contentPanel = document.getElementById('content-panel');
+    const pages = {
+      home: async () => {
+        let html = `<div>
+          <div class="greeting">Welcome to Your AI Travel Planner!</div>`;
+
+        if (currentPos && typeof google !== 'undefined') {
+          const service = new google.maps.places.PlacesService(map);
+          const request = {
+            location: currentPos,
+            radius: 5000,
+            type: 'tourist_attraction',
+            rankBy: google.maps.places.RankBy.PROMINENCE
+          };
+          try {
+            const results = await new Promise((resolve, reject) => {
+              service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                  resolve(results);
+                } else {
+                  reject(status);
+                }
+              });
+            });
+            if (results.length > 0) {
+              html += `<div class="nearby-section">
+                <h3>Nearby Attractions</h3>
+                <div class="places-grid">`;
+              results.slice(0, 6).forEach(place => {
+                const photoUrl = place.photos && place.photos[0] ? place.photos[0].getUrl({maxWidth: 300}) : 'https://via.placeholder.com/300x150?text=No+Image';
+                html += `<div class="place-card" onclick="saveHomePlace('${place.name.replace(/'/g, "\\'")}', '${(place.vicinity || place.formatted_address || 'N/A').replace(/'/g, "\\'")}')">
+                  <img src="${photoUrl}" alt="${place.name}">
+                  <h4>${place.name}</h4>
+                  <p>${place.vicinity || 'Address not available'}</p>
+                  ${place.rating ? `<p>Rating: ${place.rating} ⭐</p>` : ''}
+                </div>`;
+              });
+              html += `</div></div>`;
+            }
+          } catch (error) {
+            console.error('Error fetching nearby places:', error);
+          }
+        }
+        html += `</div>`;
+        return html;
+      },
+      welcome: async () => {
+        let html = `<div>
+          <div class="greeting">Welcome to Your AI Travel Planner!</div>`;
+
+        if (currentPos && typeof google !== 'undefined') {
+          const service = new google.maps.places.PlacesService(map);
+          const request = {
+            location: currentPos,
+            radius: 5000,
+            type: 'tourist_attraction',
+            rankBy: google.maps.places.RankBy.PROMINENCE
+          };
+          try {
+            const results = await new Promise((resolve, reject) => {
+              service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                  resolve(results);
+                } else {
+                  reject(status);
+                }
+              });
+            });
+            if (results.length > 0) {
+              html += `<div class="nearby-section">
+                <h3>Nearby Attractions</h3>
+                <div class="places-grid">`;
+              results.slice(0, 6).forEach(place => {
+                const photoUrl = place.photos && place.photos[0] ? place.photos[0].getUrl({maxWidth: 300}) : 'https://via.placeholder.com/300x150?text=No+Image';
+                html += `<div class="place-card" onclick="saveHomePlace('${place.name.replace(/'/g, "\\'")}', '${(place.vicinity || place.formatted_address || 'N/A').replace(/'/g, "\\'")}')">
+                  <img src="${photoUrl}" alt="${place.name}">
+                  <h4>${place.name}</h4>
+                  <p>${place.vicinity || 'Address not available'}</p>
+                  ${place.rating ? `<p>Rating: ${place.rating} ⭐</p>` : ''}
+                </div>`;
+              });
+              html += `</div></div>`;
+            }
+          } catch (error) {
+            console.error('Error fetching nearby places:', error);
+          }
+        }
+        html += `</div>`;
+        return html;
+      },
+      chat: `
+        <div>
+          <h2>Travel Chat Assistant</h2>
+          <p>Start a travel planning conversation or ask anything about a next adventure.</p>
+          <div style="margin-top:40px;color:#999;">[Chat UI coming soon!]</div>
+        </div>
+      `,
+      search: `
+        <div>
+          <h2>Search Destinations</h2>
+          <input type="text" placeholder="Search for a place, city, or landmark..." style="width: 80%; padding: 10px; font-size: 1em; border-radius: 6px; border: 1px solid #ccc;" />
+          <div style="margin-top:40px;color:#999;">[Search results will appear here]</div>
+        </div>
+      `,
+      saved: function() {
+        const savedPlaces = JSON.parse(localStorage.getItem('savedPlaces')) || [];
+        let html = '<div><h2>Saved Places</h2><p>Favorites and bookmarks appear here for easy planning.</p><ul class="place-list">';
+        if (savedPlaces.length === 0) {
+          html += '<li>No places saved yet.</li>';
+        } else {
+          savedPlaces.forEach((place, index) => {
+            html += `<li>${place.name} - ${place.address} <button class="interactive-btn delete-btn" onclick="deletePlace('${place.name}', '${place.address}')">Delete</button></li>`;
+          });
+        }
+        html += '</ul></div>';
+        return html;
+      },
+      trips: `
+        <div>
+          <h2>Upcoming Trips</h2>
+          <p>Manage planned trips here.</p>
+          <ul class="place-list"><li>No trips planned yet.</li></ul>
+        </div>
+      `,
+    };
+
+    function attachNav(id, pageKey) {
+      const btn = document.getElementById(id);
+      btn.onclick = async () => {
+        const pageContent = pages[pageKey];
+        if (typeof pageContent === 'function') {
+          contentPanel.innerHTML = '<div>Loading...</div>';
+          const html = await pageContent();
+          contentPanel.innerHTML = html;
+        } else {
+          contentPanel.innerHTML = pageContent;
+        }
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    }
+    attachNav('btn-home', 'home');
+    attachNav('btn-chat', 'chat');
+    attachNav('btn-search', 'search');
+    attachNav('btn-saved', 'saved');
+    attachNav('btn-trips', 'trips');
+
+    // More options dropdown toggle
+    const moreOptionsBtn = document.getElementById('more-options-btn');
+    moreOptionsBtn.addEventListener('click', () => {
+      moreOptionsActions.classList.toggle('show');
+    });
+
+    // Settings and Dark Mode buttons
+    const settingsBtn = document.getElementById('settings-btn');
+    settingsBtn.addEventListener('click', () => {
+      alert('Settings clicked!');
+    });
+
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
+  </script>
+
+  <script>
+  // --- Enhanced Search Functionality ---
+  let markers = []; // Array to hold map markers
+
+  function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.background = '#333';
+    toast.style.color = '#fff';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.zIndex = '1000';
+    toast.style.fontSize = '14px';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 2000);
+  }
+
+  function savePlace(placeDetails) {
+    const savedPlaces = JSON.parse(localStorage.getItem('savedPlaces')) || [];
+    const place = {
+      name: placeDetails.name,
+      address: placeDetails.formatted_address,
+      place_id: placeDetails.place_id || null
+    };
+    // Check if already saved by name and address
+    if (!savedPlaces.some(p => p.name === place.name && p.address === place.address)) {
+      savedPlaces.push(place);
+      localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
+      showToast('Place saved!');
+    } else {
+      showToast('Place already saved.');
+    }
+  }
+
+  function saveHomePlace(name, address) {
+    savePlace({ name, formatted_address: address });
+  }
+
+  function deletePlace(name, address) {
+    const savedPlaces = JSON.parse(localStorage.getItem('savedPlaces')) || [];
+    const index = savedPlaces.findIndex(p => p.name === name && p.address === address);
+    if (index !== -1) {
+      savedPlaces.splice(index, 1);
+      localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
+      showToast('Place deleted!');
+      // Refresh the saved page
+      contentPanel.innerHTML = pages.saved();
+    } else {
+      showToast('Place not found.');
+    }
+  }
+
+  function enableSearchFeature() {
+    const contentPanel = document.getElementById('content-panel');
+    const searchHTML = `
+      <div>
+        <h2>Search Destinations</h2>
+        <input id="search-input" type="text" placeholder="Search for a place, city, or landmark..."
+          style="width: 80%; padding: 10px; font-size: 1em; border-radius: 6px; border: 1px solid #ccc;" />
+        <button id="search-btn" style="padding:10px 16px; margin-left:10px; border:none; background:#333; color:#fff; border-radius:6px; cursor:pointer;">Search</button>
+        <div id="search-results" style="margin-top:30px;"></div>
+      </div>
+    `;
+    contentPanel.innerHTML = searchHTML;
+
+    const service = new google.maps.places.PlacesService(map);
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-btn');
+    const resultsContainer = document.getElementById('search-results');
+
+    // Restore saved query
+    const savedQuery = localStorage.getItem('searchQuery');
+    if (savedQuery) {
+      searchInput.value = savedQuery;
+    }
+
+    // Restore saved results
+    const savedResults = localStorage.getItem('searchResults');
+    if (savedResults) {
+      resultsContainer.innerHTML = savedResults;
+    }
+
+    // Save query on input change
+    searchInput.addEventListener('input', () => {
+      localStorage.setItem('searchQuery', searchInput.value);
+    });
+
+    // Initialize autocomplete
+    const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+      types: ['geocode'] // Restrict to geographical locations
+    });
+
+    // Listen for place selection
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.place_id) {
+        // Trigger search with selected place
+        searchButton.click();
+      }
+    });
+
+    // Allow Enter key to trigger search
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        searchButton.click();
+      }
+    });
+
+    searchButton.addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (!query) return alert('Enter a place name');
+      const request = { query, fields: ['place_id', 'name', 'formatted_address', 'geometry', 'photos', 'rating'] };
+      service.findPlaceFromQuery(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+          const place = results[0];
+          const placeId = place.place_id;
+
+          // Clear previous markers
+          markers.forEach(marker => marker.setMap(null));
+          markers = [];
+
+          // Get detailed place info
+          service.getDetails({
+            placeId: placeId,
+            fields: ['name', 'formatted_address', 'geometry', 'photos', 'rating', 'reviews', 'types', 'website', 'formatted_phone_number', 'opening_hours']
+          }, (placeDetails, detailsStatus) => {
+            if (detailsStatus === google.maps.places.PlacesServiceStatus.OK) {
+              let html = `<div class="search-results-container">
+                <div class="place-card">
+                  <h3 class="place-title">${placeDetails.name}</h3>
+                  <div class="detail-section">
+                    <h4>Address</h4>
+                    <p>${placeDetails.formatted_address || 'N/A'}</p>
+                  </div>`;
+              if (placeDetails.rating) {
+                html += `<div class="detail-section">
+                  <h4>Rating</h4>
+                  <p class="rating-stars">${placeDetails.rating} ⭐</p>
+                </div>`;
+              }
+              if (placeDetails.types) {
+                html += `<div class="detail-section">
+                  <h4>Types</h4>
+                  <p>${placeDetails.types.join(', ')}</p>
+                </div>`;
+              }
+              if (placeDetails.website) {
+                html += `<div class="detail-section">
+                  <h4>Website</h4>
+                  <p><a href="${placeDetails.website}" target="_blank">${placeDetails.website}</a></p>
+                </div>`;
+              }
+              if (placeDetails.formatted_phone_number) {
+                html += `<div class="detail-section">
+                  <h4>Phone</h4>
+                  <p>${placeDetails.formatted_phone_number}</p>
+                </div>`;
+              }
+              if (placeDetails.opening_hours && placeDetails.opening_hours.weekday_text) {
+                html += `<div class="detail-section">
+                  <h4>Opening Hours</h4>
+                  <ul>`;
+                placeDetails.opening_hours.weekday_text.forEach(day => html += `<li>${day}</li>`);
+                html += `</ul>
+                </div>`;
+              }
+              if (placeDetails.photos && placeDetails.photos.length > 0) {
+                html += `<div class="detail-section">
+                  <h4>Photos</h4>
+                  <div class="photo-gallery">`;
+                placeDetails.photos.slice(0, 3).forEach(photo => {
+                  html += `<img src="${photo.getUrl({maxWidth: 300})}" alt="Place photo" />`;
+                });
+                html += `</div>
+                </div>`;
+              }
+              if (placeDetails.reviews && placeDetails.reviews.length > 0) {
+                html += `<button class="collapsible">Show Reviews (${placeDetails.reviews.length})</button>
+                <div class="content">
+                  <h4>Reviews</h4>`;
+                placeDetails.reviews.slice(0, 3).forEach(review => {
+                  html += `<div class="review-card">
+                    <p><strong>${review.author_name}</strong> <span class="rating-stars">${review.rating} ⭐</span></p>
+                    <p>${review.text}</p>
+                  </div>`;
+                });
+                html += `</div>`;
+              }
+              html += `<button class="interactive-btn view-map-btn">View on Map</button>
+              <button class="interactive-btn save-place-btn">Save Place</button>
+              </div>
+              </div>`;
+
+              // Nearby restaurants
+              const nearbyRequest = {
+                location: placeDetails.geometry.location,
+                radius: 5000,
+                type: 'restaurant',
+                rankBy: google.maps.places.RankBy.PROMINENCE
+              };
+              service.nearbySearch(nearbyRequest, (restaurants, nearbyStatus) => {
+                if (nearbyStatus === google.maps.places.PlacesServiceStatus.OK && restaurants.length > 0) {
+                  html += `<h4>Nearby Restaurants & Famous Food Spots</h4>`;
+                  restaurants.slice(0, 5).forEach(restaurant => {
+                    html += `<div class="restaurant-card">`;
+                    html += `<h5>${restaurant.name}</h5>`;
+                    if (restaurant.rating) html += `<p><strong>Rating:</strong> ${restaurant.rating} ⭐</p>`;
+                    if (restaurant.vicinity) html += `<p><strong>Address:</strong> ${restaurant.vicinity}</p>`;
+                    if (restaurant.photos && restaurant.photos.length > 0) {
+                      html += `<img src="${restaurant.photos[0].getUrl({maxWidth: 200})}" alt="Restaurant photo" />`;
+                    }
+                    html += `</div>`;
+
+                    // Add marker for restaurant
+                    const marker = new google.maps.Marker({
+                      position: restaurant.geometry.location,
+                      map: map,
+                      title: restaurant.name,
+                      icon: {
+                        url: 'https://maps.google.com/mapfiles/ms/icons/restaurant.png',
+                        scaledSize: new google.maps.Size(32, 32)
+                      }
+                    });
+                    markers.push(marker);
+                  });
+                } else {
+                  html += `<p>No nearby restaurants found.</p>`;
+                }
+                resultsContainer.innerHTML = html;
+                localStorage.setItem('searchResults', html);
+
+                // Add event listeners for buttons
+                document.querySelector('.view-map-btn').addEventListener('click', () => {
+                  const mainContent = document.querySelector('.main-content');
+                  mainContent.classList.add('map-expanded');
+                  // Add back button if not exists
+                  if (!document.getElementById('map-back-btn')) {
+                    const backBtn = document.createElement('button');
+                    backBtn.id = 'map-back-btn';
+                    backBtn.textContent = 'Back';
+                    backBtn.style.position = 'absolute';
+                    backBtn.style.top = '10px';
+                    backBtn.style.left = '10px';
+                    backBtn.style.zIndex = '1000';
+                    backBtn.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                    backBtn.style.color = '#fff';
+                    backBtn.style.border = 'none';
+                    backBtn.style.padding = '10px 16px';
+                    backBtn.style.borderRadius = '8px';
+                    backBtn.style.cursor = 'pointer';
+                    backBtn.style.fontWeight = '700';
+                    backBtn.style.fontSize = '14px';
+                    backBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    backBtn.style.transition = 'transform 0.2s, box-shadow 0.3s';
+                    backBtn.style.willChange = 'transform, box-shadow';
+                    document.querySelector('.map-panel').appendChild(backBtn);
+                    backBtn.addEventListener('click', () => {
+                      mainContent.classList.remove('map-expanded');
+                      backBtn.remove();
+                    });
+                    backBtn.addEventListener('mouseover', () => {
+                      backBtn.style.transform = 'scale3d(1.05, 1.05, 1)';
+                      backBtn.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
+                    });
+                    backBtn.addEventListener('mouseout', () => {
+                      backBtn.style.transform = 'scale3d(1, 1, 1)';
+                      backBtn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    });
+                  }
+                  map.setCenter(placeDetails.geometry.location);
+                  map.setZoom(16);
+                });
+                document.querySelector('.save-place-btn').addEventListener('click', () => savePlace(placeDetails));
+
+                // Add collapsible functionality
+                document.querySelectorAll('.collapsible').forEach(button => {
+                  button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('show');
+                    const reviewCount = placeDetails.reviews ? placeDetails.reviews.length : 0;
+                    button.textContent = content.classList.contains('show') ? 'Hide Reviews' : `Show Reviews (${reviewCount})`;
+                  });
+                });
+              });
+
+              // Update map for the main place
+              map.setCenter(placeDetails.geometry.location);
+              map.setZoom(14);
+              const placeMarker = new google.maps.Marker({
+                map,
+                position: placeDetails.geometry.location,
+                title: placeDetails.name,
+              });
+              markers.push(placeMarker);
+            } else {
+              resultsContainer.innerHTML = '<p>Failed to load place details.</p>';
+            }
+          });
+        } else {
+          resultsContainer.innerHTML = '<p>No results found.</p>';
+        }
+      });
+    });
+  }
+
+  // Replace static search button behavior with real search
+  document.getElementById('btn-search').onclick = () => {
+    enableSearchFeature();
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-search').classList.add('active');
+  };
+</script>
+
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBCUE7kvBd4IyJtcvPw6OoKVphxE0Mf0ic&libraries=places&callback=initMap"></script>
+
+  <script>
+    // Draggable functionality
+    const draggableBoxes = document.querySelectorAll('.draggable-box');
+    let draggedElement = null;
+
+    draggableBoxes.forEach(box => {
+      box.addEventListener('dragstart', (e) => {
+        draggedElement = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target.outerHTML);
+        e.target.style.opacity = '0.5';
+      });
+
+      box.addEventListener('dragend', (e) => {
+        e.target.style.opacity = '1';
+        draggedElement = null;
+      });
+
+      box.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      box.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedElement && draggedElement !== e.target) {
+          const container = e.target.parentElement;
+          const draggedIndex = Array.from(container.children).indexOf(draggedElement);
+          const targetIndex = Array.from(container.children).indexOf(e.target);
+          if (draggedIndex < targetIndex) {
+            container.insertBefore(draggedElement, e.target.nextSibling);
+          } else {
+            container.insertBefore(draggedElement, e.target);
+          }
+        }
+      });
+    });
+
+    // Dark mode toggle
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('dark-mode-btn')) {
+        document.body.classList.toggle('dark');
+      }
+      if (e.target.classList.contains('settings-btn')) {
+        alert('Settings clicked!');
+      }
+    });
+
+    // Load welcome page on window load
+    window.addEventListener('load', async () => {
+      const html = await pages.welcome();
+      contentPanel.innerHTML = html;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-home').classList.add('active');
+    });
+  </script>
+
+</body>
+</html>
